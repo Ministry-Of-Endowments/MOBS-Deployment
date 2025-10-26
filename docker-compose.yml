@@ -40,6 +40,8 @@ services:
     build:
       context: .
       dockerfile: ./docker/Dockerfile.frontend
+      args:
+        VITE_API_BASE_URL: /api
     container_name: mobs-frontend
     ports:
       - "3002:80"
