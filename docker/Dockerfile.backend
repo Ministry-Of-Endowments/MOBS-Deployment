@@ -1,0 +1,27 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+EXPOSE 8080
+
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
+
+COPY ["MinistryOutbuildings.API/MinistryOutbuildings.API.csproj", "MinistryOutbuildings.API/"]
+COPY ["MinistryOutbuildings.BAL/MinistryOutbuildings.BAL.csproj", "MinistryOutbuildings.BAL/"]
+COPY ["MinistryOutbuildings.DAL/MinistryOutbuildings.DAL.csproj", "MinistryOutbuildings.DAL/"]
+
+RUN dotnet restore "MinistryOutbuildings.API/MinistryOutbuildings.API.csproj"
+
+COPY . .
+WORKDIR "/src/MinistryOutbuildings.API"
+RUN dotnet build "MinistryOutbuildings.API.csproj" -c Release -o /app/build
+
+FROM build AS publish
+RUN dotnet publish "MinistryOutbuildings.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+ENV ASPNETCORE_URLS=http://+:8080
+
+ENTRYPOINT ["dotnet", "MinistryOutbuildings.API.dll"]

@@ -1,0 +1,6 @@
+[submodule "MinistryOutbuildingsSystem-BackEnd"]
+	path = MinistryOutbuildingsSystem-BackEnd
+	url = git@github.com:Ministry-Of-Endowments/MinistryOutbuildingsSystem-BackEnd.git
+[submodule "MinistryOutbuildingsSystem-Frontend"]
+	path = MinistryOutbuildingsSystem-Frontend
+	url = git@github.com:Ministry-Of-Endowments/MinistryOutbuildingsSystem-Frontend.git

@@ -1,0 +1,73 @@
+version: '3.6'
+
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2019-latest
+    container_name: mobs-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - SA_PASSWORD=P@ssw0rdP@ssw0rd6
+    ports:
+      - "1435:1433"
+    volumes:
+      - mobs_db_data:/var/opt/mssql
+    networks:
+      - mobs-network
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./MinistryOutbuildingsSystem-BackEnd
+      dockerfile: ../docker/Dockerfile.backend
+    container_name: mobs-backend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - ConnectionStrings__remoteCon=Server=mobs-sqlserver,1433;Database=AwqafOutBuilding;User Id=sa;Password=P@ssw0rdP@ssw0rd6;TrustServerCertificate=True
+    ports:
+      - "8083:8080"
+    networks:
+      - mobs-network
+    restart: unless-stopped
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./docker/appsettings.Production.json:/app/appsettings.Production.json
+    depends_on:
+      - sqlserver
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./docker/Dockerfile.frontend
+    container_name: mobs-frontend
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+    networks:
+      - mobs-network
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:alpine
+    container_name: mobs-nginx
+    ports:
+      - "8095:80"
+      - "8096:443"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - mobs-network
+    restart: unless-stopped
+
+volumes:
+  mobs_db_data:
+    driver: local
+
+networks:
+  mobs-network:
+    driver: bridge
